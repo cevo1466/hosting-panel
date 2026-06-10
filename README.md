@@ -53,9 +53,12 @@ Tek arayüzden eksiksiz hosting yönetimi:
 
 ## Ekran Görüntüleri
 
-> Görseller `docs/screenshots/` klasörüne eklendiğinde aşağıda otomatik görünür.
-> Bkz. [docs/screenshots/README.md](docs/screenshots/README.md) (hangi dosya nereye).
+> 📸 Görseller hazırlanıyor. `docs/screenshots/` klasörüne `dashboard.png`, `files.png`,
+> `domains.png`, `services.png` eklendiğinde aşağıdaki ızgara otomatik görünür —
+> bunun için aşağıdaki HTML yorumunu kaldırmanız yeterli.
+> Rehber: [docs/screenshots/README.md](docs/screenshots/README.md).
 
+<!-- Görseller eklendikten sonra bu yorum satırlarını silin:
 | Panel (Dashboard) | Dosya Yöneticisi |
 |---|---|
 | ![Dashboard](docs/screenshots/dashboard.png) | ![Dosya Yöneticisi](docs/screenshots/files.png) |
@@ -63,6 +66,7 @@ Tek arayüzden eksiksiz hosting yönetimi:
 | Domain Yönetimi | Servis Durumu |
 |---|---|
 | ![Domainler](docs/screenshots/domains.png) | ![Servisler](docs/screenshots/services.png) |
+-->
 
 ---
 
