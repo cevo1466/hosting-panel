@@ -12,6 +12,7 @@ import { LogoMark } from '@/components/shared/Logo';
 import { cn } from '@/lib/utils';
 import { useAuthStore, useUIStore } from '@/lib/store';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { resolveWebmailHref } from '@/lib/response-normalizers';
 
 interface NavItem {
   label: string;
@@ -49,7 +50,7 @@ const navGroups: NavGroup[] = [
     items: [
       { label: 'FTP Hesapları', href: '/ftp',      icon: FolderOpen, color: 'text-amber-500',  activeColor: '#D97706' },
       { label: 'E-posta',       href: '/email',    icon: Mail,       color: 'text-pink-500',   activeColor: '#DB2777' },
-      { label: 'Webmail',       href: process.env.NEXT_PUBLIC_WEBMAIL_URL || '/email', icon: ExternalLink, color: 'text-rose-500', activeColor: '#E11D48', external: !!process.env.NEXT_PUBLIC_WEBMAIL_URL },
+      { label: 'Webmail',       href: resolveWebmailHref(process.env.NEXT_PUBLIC_WEBMAIL_URL), icon: ExternalLink, color: 'text-rose-500', activeColor: '#E11D48', external: !!process.env.NEXT_PUBLIC_WEBMAIL_URL },
       { label: 'DNS Yönetimi',  href: '/dns',      icon: Network,    color: 'text-indigo-500', activeColor: '#4338CA' },
       { label: 'Veritabanları', href: '/databases',icon: Database,   color: 'text-blue-500',   activeColor: '#2563EB' },
     ],

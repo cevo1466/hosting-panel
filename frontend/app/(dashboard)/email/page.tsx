@@ -10,6 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api, getErrorMessage } from '@/lib/api';
+import { resolveWebmailHref } from '@/lib/response-normalizers';
 import toast from 'react-hot-toast';
 
 interface EmailAccount {
@@ -26,6 +27,9 @@ interface EmailAccount {
 }
 
 interface Domain { id: string; name: string; }
+
+const webmailHref = resolveWebmailHref(process.env.NEXT_PUBLIC_WEBMAIL_URL);
+const webmailIsExternal = webmailHref.startsWith('http://') || webmailHref.startsWith('https://');
 
 export default function EmailPage() {
   const [emails, setEmails] = useState<EmailAccount[]>([]);
@@ -117,8 +121,10 @@ export default function EmailPage() {
         </div>
         <div className="flex gap-3">
           <Button onClick={fetchData} variant="outline" className="border-[#23252a] hover:bg-[#14151a] text-white rounded-xl"><RefreshCw className="h-4 w-4" /></Button>
-          <Button variant="outline" className="border-[#23252a] hover:bg-[#14151a] text-white hover:text-white rounded-xl text-xs gap-1.5 py-5">
-            <ExternalLink className="h-4 w-4 text-[#8a8f98]" />Webmail
+          <Button asChild variant="outline" className="border-[#23252a] hover:bg-[#14151a] text-white hover:text-white rounded-xl text-xs gap-1.5 py-5">
+            <a href={webmailHref} target={webmailIsExternal ? '_blank' : undefined} rel={webmailIsExternal ? 'noopener noreferrer' : undefined}>
+              <ExternalLink className="h-4 w-4 text-[#8a8f98]" />Webmail
+            </a>
           </Button>
           <Button onClick={() => setShowAdd(true)} className="bg-gradient-to-r from-primary to-[#828fff] hover:from-[#828fff] hover:to-[#5e6ad2] text-white rounded-xl py-5 px-5 gap-2">
             <Plus className="h-4 w-4" />Yeni Hesap

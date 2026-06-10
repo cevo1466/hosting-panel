@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { api, getErrorMessage } from '@/lib/api';
+import { normalizeAuditLogs, normalizeFail2banStatus, normalizeLoginAttempts } from '@/lib/response-normalizers';
 import toast from 'react-hot-toast';
 
 interface AuditLog {
@@ -57,9 +58,9 @@ export default function SecurityPage() {
         api.get('/security/login-attempts'),
         api.get('/security/fail2ban'),
       ]);
-      setAuditLogs(auditRes.data.data || []);
-      setLoginAttempts(attemptRes.data.data || []);
-      setFail2ban(f2bRes.data.data || null);
+      setAuditLogs(normalizeAuditLogs(auditRes.data.data));
+      setLoginAttempts(normalizeLoginAttempts(attemptRes.data.data));
+      setFail2ban(normalizeFail2banStatus(f2bRes.data.data));
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
