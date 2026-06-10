@@ -1,0 +1,305 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 230 50% 96%;
+    --foreground: 222 47% 6%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 6%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 6%;
+    --primary: 239 84% 67%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 230 40% 96%;
+    --secondary-foreground: 222 47% 20%;
+    --muted: 230 30% 94%;
+    --muted-foreground: 215 20% 45%;
+    --accent: 230 40% 94%;
+    --accent-foreground: 222 47% 15%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 20% 88%;
+    --input: 220 20% 88%;
+    --ring: 239 84% 67%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222 47% 4%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 7%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 7%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 239 84% 67%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217 32% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 32% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 32% 17%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 32% 17%;
+    --input: 217 32% 17%;
+    --ring: 239 84% 67%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    background-color: #F0F4FF;
+  }
+}
+
+/* ─── Keyframes ─── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+@keyframes gradient-x {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+@keyframes ping-slow {
+  0%   { transform: scale(1);   opacity: 0.8; }
+  70%  { transform: scale(1.8); opacity: 0; }
+  100% { transform: scale(1);   opacity: 0; }
+}
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+@keyframes orb-drift {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%     { transform: translate(30px,-20px) scale(1.05); }
+  66%     { transform: translate(-20px,15px) scale(0.97); }
+}
+@keyframes card-lift {
+  from { transform: translateY(0); box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 16px rgba(99,102,241,0.06); }
+  to   { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.09), 0 12px 40px rgba(99,102,241,0.12); }
+}
+
+/* ─── Animation utilities ─── */
+.animate-fade-up       { animation: fade-up      0.4s cubic-bezier(.16,1,.3,1) both; }
+.animate-fade-in       { animation: fade-in      0.3s ease both; }
+.animate-slide-in-left { animation: slide-in-left 0.35s cubic-bezier(.16,1,.3,1) both; }
+.animate-shimmer       { animation: shimmer 2.5s linear infinite; }
+.animate-float         { animation: float 4s ease-in-out infinite; }
+.animate-spin-slow     { animation: spin-slow 8s linear infinite; }
+.animate-gradient-x    { animation: gradient-x 4s ease infinite; background-size: 200% 200%; }
+.animate-ping-slow     { animation: ping-slow 2s cubic-bezier(0,0,.2,1) infinite; }
+.animate-count-up      { animation: count-up 0.5s cubic-bezier(.16,1,.3,1) both; }
+.animate-orb-drift     { animation: orb-drift 12s ease-in-out infinite; }
+
+/* Staggered children */
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 60ms; }
+.stagger > *:nth-child(3) { animation-delay: 120ms; }
+.stagger > *:nth-child(4) { animation-delay: 180ms; }
+.stagger > *:nth-child(5) { animation-delay: 240ms; }
+.stagger > *:nth-child(6) { animation-delay: 300ms; }
+
+/* ─── Cards ─── */
+.card-light {
+  background: #ffffff;
+  border: 1px solid #E2E8F0;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 16px rgba(99,102,241,0.06);
+}
+
+/* ─── Card hover lift ─── */
+.card-hover-lift {
+  transition: transform 0.2s cubic-bezier(.16,1,.3,1), box-shadow 0.2s ease;
+}
+.card-hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.09), 0 12px 40px rgba(99,102,241,0.12);
+}
+
+/* Keep legacy card-hover working */
+.card-hover {
+  transition: transform 0.2s cubic-bezier(.16,1,.3,1), box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.09), 0 12px 40px rgba(99,102,241,0.12);
+}
+
+/* ─── Shimmer loading ─── */
+.shimmer-loading {
+  background: linear-gradient(
+    90deg,
+    #f1f5f9 0%,
+    #e8eeff 50%,
+    #f1f5f9 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
+}
+/* Legacy alias */
+.shimmer-bg {
+  background: linear-gradient(
+    90deg,
+    #f1f5f9 0%,
+    #e8eeff 50%,
+    #f1f5f9 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
+}
+
+/* ─── Gradient text ─── */
+.text-gradient {
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 60%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.text-gradient-primary {
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ─── Gradient borders ─── */
+.gradient-border {
+  position: relative;
+}
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(99,102,241,0.5), rgba(139,92,246,0.3));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ─── Sidebar nav active ─── */
+.nav-active-light {
+  background: #EEF2FF;
+  border-left: 2px solid #6366F1;
+  color: #6366F1;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #F0F4FF; }
+::-webkit-scrollbar-thumb {
+  background: rgba(99,102,241,0.25);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.5); }
+
+/* ─── Log lines ─── */
+.log-line-error { @apply text-rose-600; }
+.log-line-warn  { @apply text-amber-600; }
+.log-line-info  { @apply text-sky-600; }
+
+/* ─── Transitions ─── */
+* {
+  transition-property: color, background-color, border-color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* ═══════════════════════════════════════════════
+   LIGHT MODE: Fix hardcoded dark-theme colours
+   Pages use legacy dark hex classes – override
+   them when NOT in .dark mode.
+═══════════════════════════════════════════════ */
+
+/* Cards / panels that used dark glass backgrounds */
+html:not(.dark) .backdrop-blur-xl,
+html:not(.dark) .backdrop-blur-md,
+html:not(.dark) .backdrop-blur-sm {
+  background-color: rgba(255, 255, 255, 0.96) !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* White text becomes near-black */
+html:not(.dark) .text-white {
+  color: #0f172a !important;
+}
+
+/* Semi-white / gray text colours used in pages */
+html:not(.dark) .text-slate-200,
+html:not(.dark) .text-slate-300 {
+  color: #334155 !important;
+}
+
+/* Hardcoded muted hex colours → slate-500 */
+html:not(.dark) [class*="text-[#8"] {
+  color: #64748b !important;
+}
+html:not(.dark) [class*="text-[#6"] {
+  color: #475569 !important;
+}
+
+/* Dark border colours */
+html:not(.dark) [class*="border-[#2"],
+html:not(.dark) [class*="border-[#1"] {
+  border-color: #e2e8f0 !important;
+}
+
+/* Dark background tiles used on sub-rows / items */
+html:not(.dark) [class*="bg-[#14"],
+html:not(.dark) [class*="bg-[#0b"],
+html:not(.dark) [class*="bg-[#07"],
+html:not(.dark) [class*="bg-[#1a"] {
+  background-color: #f8faff !important;
+}
+
+/* Progress bar track */
+html:not(.dark) [class*="bg-[#1a1b24]"] {
+  background-color: #e2e8f0 !important;
+}
+
+/* Hover border overrides */
+html:not(.dark) [class*="hover:border-[#3"] {
+  --tw-border-opacity: 1;
+}
+
+/* Dark mode: restore body bg + scrollbar */
+html.dark body { background-color: #030509 !important; }
+html.dark ::-webkit-scrollbar-track { background: #0a0a14; }
+html.dark ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.35); }
+
+/* Dark mode sidebar / topbar */
+html.dark aside,
+html.dark header { background: inherit; }

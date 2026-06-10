@@ -1,0 +1,48 @@
+# === Gizli / ortam değişkenleri (ASLA push edilmez) ===
+.env
+.env.*
+!.env.example
+
+# === Bağımlılıklar ===
+node_modules/
+**/node_modules/
+
+# === Build / cache çıktıları ===
+.next/
+**/.next/
+dist/
+build/
+*.tsbuildinfo
+# Next.js standalone build çıktısı (Dockerfile imaj içinde üretir)
+frontend/server.js
+
+# === Veritabanı / kullanıcı verisi ===
+*.db
+*.sqlite
+*.sqlite3
+
+# === Sertifikalar / anahtarlar ===
+*.pem
+*.key
+*.crt
+
+# === Loglar ===
+*.log
+**/logs/*.log
+npm-debug.log*
+yarn-error.log*
+
+# === Yerel kurulum çıktıları ===
+install-*.log
+
+# === OS / editör ===
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# === Yerel ajan/araç config ===
+.claude/
+.agents/
+.planning/
+skills-lock.json

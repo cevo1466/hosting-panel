@@ -1,0 +1,237 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  username      String   @unique
+  passwordHash  String
+  role          String   @default("client") // admin, reseller, client
+  fullName      String?
+  phone         String?
+  isActive      Boolean  @default(true)
+  isSuspended   Boolean  @default(false)
+  twoFactorSecret String?
+  twoFactorEnabled Boolean @default(false)
+  ipWhitelist   String?  // JSON array
+  loginAttempts Int      @default(0)
+  lockedUntil   DateTime?
+  lastLogin     DateTime?
+  lastLoginIp   String?
+  packageId     String?
+  package       Package? @relation(fields: [packageId], references: [id])
+  domains       Domain[]
+  ftpAccounts   FtpAccount[]
+  emailAccounts EmailAccount[]
+  databases     Database[]
+  backups       Backup[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Package {
+  id              String  @id @default(uuid())
+  name            String  @unique
+  description     String?
+  diskLimitMB     Int     @default(5120)
+  bandwidthLimitMB Int    @default(51200)
+  maxDomains      Int     @default(5)
+  maxSubdomains   Int     @default(20)
+  maxEmailAccounts Int    @default(10)
+  maxFtpAccounts  Int     @default(5)
+  maxDatabases    Int     @default(5)
+  phpVersion      String  @default("8.3")
+  isActive        Boolean @default(true)
+  users           User[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Domain {
+  id              String   @id @default(uuid())
+  name            String   @unique
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  documentRoot    String
+  phpVersion      String   @default("8.3")
+  isActive        Boolean  @default(true)
+  isSuspended     Boolean  @default(false)
+  webServerConfig String?
+  subdomains      Subdomain[]
+  sslCertificate  SslCertificate?
+  emailAccounts   EmailAccount[]
+  ftpAccounts     FtpAccount[]
+  databases       Database[]
+  dnsZone         DnsZone?
+  backups         Backup[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Subdomain {
+  id              String   @id @default(uuid())
+  name            String
+  domainId        String
+  domain          Domain   @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  documentRoot    String
+  phpVersion      String   @default("8.3")
+  isActive        Boolean  @default(true)
+  sslCertificate  SslCertificate?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([name, domainId])
+}
+
+model SslCertificate {
+  id              String   @id @default(uuid())
+  domainId        String?  @unique
+  domain          Domain?  @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  subdomainId     String?  @unique
+  subdomain       Subdomain? @relation(fields: [subdomainId], references: [id], onDelete: Cascade)
+  provider        String   @default("letsencrypt")
+  commonName      String
+  issuedAt        DateTime?
+  expiresAt       DateTime?
+  autoRenew       Boolean  @default(true)
+  status          String   @default("pending") // pending, active, expired, revoked, failed
+  certPath        String?
+  keyPath         String?
+  chainPath       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model FtpAccount {
+  id          String   @id @default(uuid())
+  username    String   @unique
+  passwordHash String
+  domainId    String
+  domain      Domain   @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  homeDir     String
+  quota       Int      @default(0)
+  isActive    Boolean  @default(true)
+  lastLogin   DateTime?
+  lastLoginIp String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model EmailAccount {
+  id           String   @id @default(uuid())
+  address      String   @unique
+  passwordHash String
+  domainId     String
+  domain       Domain   @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  quotaMB      Int      @default(1024)
+  usedMB       Float    @default(0)
+  isActive     Boolean  @default(true)
+  isCatchAll   Boolean  @default(false)
+  forwardTo    String?
+  autoResponder String?
+  autoResponderEnabled Boolean @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model DnsZone {
+  id        String      @id @default(uuid())
+  domainId  String      @unique
+  domain    Domain      @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  serial    Int         @default(1)
+  records   DnsRecord[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model DnsRecord {
+  id        String   @id @default(uuid())
+  zoneId    String
+  zone      DnsZone  @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  type      String   // A, AAAA, CNAME, MX, TXT, SRV, CAA
+  name      String
+  value     String
+  ttl       Int      @default(3600)
+  priority  Int?     // for MX records
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Database {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  dbUser      String   @unique
+  passwordHash String
+  domainId    String
+  domain      Domain   @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  sizeMB      Float    @default(0)
+  charset     String   @default("utf8mb4")
+  collation   String   @default("utf8mb4_unicode_ci")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Backup {
+  id          String   @id @default(uuid())
+  domainId    String
+  domain      Domain   @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  type        String   // full, files, database, email
+  status      String   @default("pending") // pending, running, completed, failed
+  filePath    String?
+  sizeMB      Float?
+  schedule    String?  // cron expression
+  autoCleanDays Int    @default(7)
+  notes       String?
+  createdAt   DateTime @default(now())
+  completedAt DateTime?
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  action     String
+  resource   String
+  resourceId String?
+  details    String?  // JSON
+  ipAddress  String?
+  userAgent  String?
+  status     String   @default("success") // success, failed
+  createdAt  DateTime @default(now())
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  type       String   // warning, error, info, success
+  category   String   // ssl, disk, service, backup, security, system
+  title      String
+  message    String
+  isRead     Boolean  @default(false)
+  actionUrl  String?
+  createdAt  DateTime @default(now())
+}
+
+model SystemSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
