@@ -51,21 +51,76 @@ yönetimi, yedekleme ve sunucu izleme — tek arayüzden.
 
 ---
 
-## Hızlı Kurulum
+## Nasıl Kurulur?
 
+Kurulum tamamen otomatiktir. Docker, tüm servisler ve veritabanı sihirbaz tarafından
+kurulur — sizin elle bir şey yapılandırmanız gerekmez.
+
+### Gereksinimler
+
+- Temiz bir **Ubuntu 22.04 / 24.04 LTS** (veya Debian 12) sunucu
+- **root** erişimi (`sudo`)
+- Bir **public IP** (domain opsiyonel — IP ile de çalışır)
+- En az **2 GB RAM**, **20 GB** disk
+
+### Adım 1 — Kodu sunucuya indirin
+
+Sunucuya root ile bağlanın, sonra iki yoldan biriyle kodu çekin:
+
+**Yol A — Git ile (önerilen):**
 ```bash
-# 1) Dosyaları sunucuya yükleyin (FileZilla/SFTP) veya git ile çekin:
-git clone https://github.com/<kullanici>/hosting-panel.git
+sudo apt update && sudo apt install -y git
+git clone https://github.com/cevo1466/hosting-panel.git
 cd hosting-panel
-
-# 2) Kurulum sihirbazını çalıştırın:
-chmod +x install.sh
-sudo ./install.sh
-
-# 3) Tarayıcıdan panele girin:  http://SUNUCU_IP
 ```
 
-Ayrıntılı adımlar: [docs/INSTALL.md](docs/INSTALL.md)
+**Yol B — ZIP ile (git istemiyorsanız):**
+```bash
+sudo apt update && sudo apt install -y wget unzip
+wget https://github.com/cevo1466/hosting-panel/archive/refs/heads/main.zip
+unzip main.zip
+cd hosting-panel-main
+```
+
+> FileZilla/SFTP ile elle yüklemeyi tercih ederseniz, klasörü sunucuya atıp o dizine `cd` yapın.
+
+### Adım 2 — Kurulum sihirbazını çalıştırın
+
+```bash
+chmod +x install.sh
+sudo ./install.sh
+```
+
+Sihirbaz size sırayla şunları sorar (çoğunun makul varsayılanı vardır, Enter'a basabilirsiniz):
+
+- **Sunucu IP'si** — otomatik algılanır, onaylamanız yeterli
+- **Panel adresi** — IP veya domain (örn. `panel.alanadiniz.com`)
+- **Admin kullanıcı adı, e-posta ve parola** — parolayı otomatik üretebilir
+- **Veritabanı/Redis şifreleri** — otomatik güçlü üretim önerilir
+- **Mail/DNS/FTP servisleri kurulsun mu?** — evet/hayır
+- **SSL kurulsun mu?** (domain kullanıyorsanız)
+
+Sonra her şeyi kendi yapar: Docker kurulumu → servisler → konteynerler → veritabanı →
+ilk admin → **10 servisin sağlık kontrolü** → özet ekran.
+
+### Adım 3 — Panele girin
+
+Kurulum bitince ekranda panel adresi ve admin bilgileri gösterilir. Tarayıcıdan:
+
+```
+http://SUNUCU_IP
+```
+
+adresine gidip kurulumda belirlediğiniz **kullanıcı adı/e-posta ve parola** ile giriş yapın.
+**İlk işiniz parolayı değiştirmek olsun.**
+
+### Kurulum sonrası kontrol
+
+```bash
+bash scripts/healthcheck.sh    # tüm servisleri tek tek kontrol eder
+```
+
+> Sorun yaşarsanız: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) · Ayrıntılı kurulum: [docs/INSTALL.md](docs/INSTALL.md)
 
 ---
 
