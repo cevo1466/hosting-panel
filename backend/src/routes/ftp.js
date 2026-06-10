@@ -8,10 +8,11 @@ const ctrl = require('../controllers/ftpController');
 
 const pwPolicy = body('password')
   .isLength({ min: 8 })
-  // En az bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter (boşluk hariç
-  // herhangi bir alfanümerik olmayan karakter — sadece @$!%*?& ile sınırlı değil).
-  .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s])/)
-  .withMessage('Şifre en az 8 karakter olmalı ve en az bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter (örn. . _ - ! @ # gibi) içermelidir');
+  // En az bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter.
+  // Boşlukları tamamen reddediyoruz; görünmez sondaki boşluklar FTP girişinde
+  // "parola yanlış" gibi görünür ve tekrar eden destek hatasına dönüşür.
+  .matches(/^(?=\S+$)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s])/)
+  .withMessage('Şifre en az 8 karakter olmalı; boşluk içermemeli ve en az bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter (örn. . _ - ! @ # gibi) içermelidir');
 
 router.get('/', authenticate, ctrl.list);
 router.post('/sync', authenticate, ctrl.syncAccounts);

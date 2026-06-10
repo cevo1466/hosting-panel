@@ -42,6 +42,15 @@ export default function FTPPage() {
   const [syncing, setSyncing] = useState(false);
   const [form, setForm] = useState({ username: '', password: '', domainId: '', subdomainId: '', quota: '1024' });
   const [pwForm, setPwForm] = useState({ password: '' });
+  const resetAddDialog = (open: boolean) => {
+    setShowAdd(open);
+    if (open) setShowPw(false);
+  };
+  const resetPwChangeDialog = (account: FTPAccount | null) => {
+    setShowPwChange(account);
+    setPwForm({ password: '' });
+    setShowPw(false);
+  };
 
   const fetchData = async () => {
     try {
@@ -75,7 +84,7 @@ export default function FTPPage() {
         quota: parseInt(form.quota),
       });
       toast.success('FTP hesabı oluşturuldu.');
-      setShowAdd(false);
+      resetAddDialog(false);
       setForm({ username: '', password: '', domainId: '', subdomainId: '', quota: '1024' });
       fetchData();
     } catch (err) {
@@ -91,7 +100,7 @@ export default function FTPPage() {
     try {
       await api.put(`/ftp/${showPwChange.id}/password`, { password: pwForm.password });
       toast.success('Şifre başarıyla değiştirildi.');
-      setShowPwChange(null);
+      resetPwChangeDialog(null);
       setPwForm({ password: '' });
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -222,7 +231,7 @@ export default function FTPPage() {
                   )}
 
                   <div className="flex gap-2 pt-1 border-t border-[#23252a]/50">
-                    <Button onClick={() => setShowPwChange(acc)} variant="outline" className="flex-1 border-[#23252a] hover:bg-[#14151a] text-white hover:text-white rounded-xl text-xs">Şifre Değiştir</Button>
+                    <Button onClick={() => resetPwChangeDialog(acc)} variant="outline" className="flex-1 border-[#23252a] hover:bg-[#14151a] text-white hover:text-white rounded-xl text-xs">Şifre Değiştir</Button>
                     <Button onClick={() => handleToggle(acc)} disabled={togglingId === acc.id} variant="outline" className="h-9 w-9 p-0 border-[#23252a] hover:bg-[#14151a] text-[#8a8f98] hover:text-white rounded-xl flex items-center justify-center">
                       {togglingId === acc.id ? <Loader2 className="h-4 w-4 animate-spin" /> : acc.status === 'active' ? <ToggleRight className="h-4 w-4 text-emerald-400" /> : <ToggleLeft className="h-4 w-4" />}
                     </Button>
@@ -237,7 +246,7 @@ export default function FTPPage() {
         </div>
       )}
 
-      <Dialog open={showAdd} onOpenChange={setShowAdd}>
+      <Dialog open={showAdd} onOpenChange={resetAddDialog}>
         <DialogContent className="bg-[#0b0c10] border border-[#23252a] text-white max-w-md">
           <DialogHeader><DialogTitle className="text-white text-lg font-bold">Yeni FTP Hesabı Oluştur</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
@@ -267,17 +276,17 @@ export default function FTPPage() {
             )}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Kullanıcı Adı</label>
-              <Input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="ftpuser" className="bg-[#07080b] border-[#23252a] text-white rounded-xl font-mono" />
+              <Input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="ftpuser" autoComplete="off" spellCheck={false} className="bg-[#07080b] border-[#23252a] text-white rounded-xl font-mono" />
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Şifre</label>
               <div className="relative">
-                <Input value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} type={showPw ? 'text' : 'password'} placeholder="Güçlü şifre girin" className="bg-[#07080b] border-[#23252a] text-white rounded-xl pr-10" />
-                <button onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a8f98] hover:text-white">
+                <Input value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} name="new_ftp_password" autoComplete="new-password" spellCheck={false} type={showPw ? 'text' : 'password'} placeholder="Güçlü şifre girin" className="bg-[#07080b] border-[#23252a] text-white rounded-xl pr-10" />
+                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a8f98] hover:text-white">
                   {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              <p className="text-xs text-[#8a8f98]">En az 8 karakter, büyük/küçük harf, rakam ve özel karakter içermelidir.</p>
+              <p className="text-xs text-[#8a8f98]">En az 8 karakter, büyük/küçük harf, rakam ve özel karakter içermelidir; boşluk kullanılamaz.</p>
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Kota (MB)</label>
@@ -285,7 +294,7 @@ export default function FTPPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAdd(false)} className="border-[#23252a] text-white hover:bg-[#14151a] rounded-xl">İptal</Button>
+            <Button variant="outline" onClick={() => resetAddDialog(false)} className="border-[#23252a] text-white hover:bg-[#14151a] rounded-xl">İptal</Button>
             <Button onClick={handleAdd} disabled={submitting} className="bg-gradient-to-r from-primary to-[#828fff] text-white rounded-xl gap-2">
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}Oluştur
             </Button>
@@ -293,22 +302,22 @@ export default function FTPPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!showPwChange} onOpenChange={() => setShowPwChange(null)}>
+      <Dialog open={!!showPwChange} onOpenChange={(open) => { if (!open) resetPwChangeDialog(null); }}>
         <DialogContent className="bg-[#0b0c10] border border-[#23252a] text-white max-w-md">
           <DialogHeader><DialogTitle className="text-white text-lg font-bold">Şifre Değiştir — {showPwChange?.username}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Yeni Şifre</label>
               <div className="relative">
-                <Input value={pwForm.password} onChange={(e) => setPwForm({ password: e.target.value })} type={showPw ? 'text' : 'password'} placeholder="Yeni şifre" className="bg-[#07080b] border-[#23252a] text-white rounded-xl pr-10" />
-                <button onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a8f98] hover:text-white">
+                <Input value={pwForm.password} onChange={(e) => setPwForm({ password: e.target.value })} name="change_ftp_password" autoComplete="new-password" spellCheck={false} type={showPw ? 'text' : 'password'} placeholder="Yeni şifre" className="bg-[#07080b] border-[#23252a] text-white rounded-xl pr-10" />
+                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a8f98] hover:text-white">
                   {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPwChange(null)} className="border-[#23252a] text-white hover:bg-[#14151a] rounded-xl">İptal</Button>
+            <Button variant="outline" onClick={() => resetPwChangeDialog(null)} className="border-[#23252a] text-white hover:bg-[#14151a] rounded-xl">İptal</Button>
             <Button onClick={handleChangePassword} disabled={submitting} className="bg-gradient-to-r from-primary to-[#828fff] text-white rounded-xl gap-2">
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}Şifreyi Kaydet
             </Button>

@@ -13,6 +13,7 @@ const USERNAME_RE = /^[a-z0-9_]{3,32}$/; // route ile aynı; sistem kullanıcı 
 
 function validatePassword(password) {
   if (!password || password.length < 8) throw new Error('Password must be at least 8 characters');
+  if (/\s/.test(password)) throw new Error('Password must not contain spaces');
   if (!/[A-Z]/.test(password)) throw new Error('Password must contain at least one uppercase letter');
   if (!/[a-z]/.test(password)) throw new Error('Password must contain at least one lowercase letter');
   if (!/[0-9]/.test(password)) throw new Error('Password must contain at least one number');
