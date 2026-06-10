@@ -167,10 +167,12 @@ if [ "${REUSE_ENV:-0}" -eq 0 ]; then
     fi
   fi
 
-  # Webmail (opsiyonel)
+  # Webmail (opsiyonel) — TEK resmi webmail adresi (her domain için ayrı DEĞİL).
+  # Tüm domainlerin e-posta hesapları buraya tam e-posta adresi + şifresiyle girer.
+  # Panelin/operatörün KENDİ domainini kullanın (müşteri domaini değil).
   NEXT_PUBLIC_WEBMAIL_URL=""
-  if ask_yes_no "Webmail (Roundcube) bağlantısı tanımlanacak mı?" "n"; then
-    NEXT_PUBLIC_WEBMAIL_URL="$(ask "Webmail adresi (örn. https://webmail.alanadiniz.com)" "")"
+  if ask_yes_no "Tek resmi webmail (Roundcube) bağlantısı tanımlanacak mı? (tüm hesaplar buraya girer)" "n"; then
+    NEXT_PUBLIC_WEBMAIL_URL="$(ask "Resmi webmail adresi — operatör domaini (örn. https://webmail.panel-domaininiz.com)" "")"
   fi
 fi
 
