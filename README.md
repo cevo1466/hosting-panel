@@ -4,6 +4,8 @@ Açık, kendi sunucunuzda barındırabileceğiniz (self-hosted) web hosting kont
 Domain, subdomain, DNS, SSL, FTP, dosya yöneticisi, veritabanı, e-posta, PHP sürüm
 yönetimi, yedekleme ve sunucu izleme — tek arayüzden.
 
+🌐 **English:** [jump to English section ↓](#english)
+
 > **Tek komutla kurulum:** `sudo ./install.sh` — sihirbaz size IP, domain, admin
 > hesabı ve portları sorar; güçlü secret'ları kendisi üretir; tüm servisleri ayağa
 > kaldırır ve sağlık kontrolü yapar.
@@ -12,19 +14,55 @@ yönetimi, yedekleme ve sunucu izleme — tek arayüzden.
 
 ## Özellikler
 
-| Modül | Açıklama |
-|------|----------|
-| 🌐 Domain & Subdomain | Alan adı/alt alan adı ekleme, nginx vhost otomatik üretimi |
-| 🧭 DNS Yönetimi | BIND zone dosyaları, kayıt yönetimi |
-| 🔒 SSL | Let's Encrypt ile ücretsiz sertifika kurulum/yenileme |
-| 📁 Dosya Yöneticisi | Tarama, yükleme, düzenleme, **çöp kutusu** (geri yükle / kalıcı sil) |
-| 👤 FTP/SFTP | Sistem kullanıcısı tabanlı FTP hesapları, sistemle senkronizasyon |
-| 🗄️ Veritabanı | MariaDB veritabanı + kullanıcı yönetimi |
-| ✉️ E-posta | Posta hesapları, Postfix/Dovecot, webmail bağlantısı |
-| 🐘 PHP | Sürüm yönetimi (PHP-FPM) |
-| 💾 Yedekleme | Site/veritabanı yedekleme ve geri yükleme |
-| 📊 İzleme | CPU/RAM/Disk/Ağ, servis durumu, loglar |
-| 🛡️ Güvenlik | Fail2Ban, güvenlik duvarı, oturum yönetimi, 2FA |
+Tek arayüzden eksiksiz hosting yönetimi:
+
+### 🌐 Web & Alan Adı
+- **Domain yönetimi** — alan adı ekleme/silme/askıya alma, nginx vhost **otomatik** üretimi
+- **Subdomain** — sınırsız alt alan adı, her biri için ayrı doküman kökü
+- **DNS yönetimi** — BIND zone dosyaları; A, AAAA, CNAME, MX, TXT, NS kayıtları
+- **SSL sertifikaları** — Let's Encrypt ile ücretsiz kurulum + **otomatik yenileme**
+- **PHP sürüm yönetimi** — domain başına PHP-FPM sürümü seçimi
+
+### 📂 Dosya & Aktarım
+- **Dosya yöneticisi** — tarama, yükleme, düzenleme, klasör oluşturma, yeniden adlandırma
+- **Çöp kutusu** — silinen dosyalar önce çöpe gider; **geri yükle** veya **kalıcı sil**
+- **Toplu işlem** — tümünü seç, toplu silme
+- **FTP/SFTP** — sistem kullanıcısı tabanlı hesaplar, kota, mevcut sistemle **senkronizasyon**
+
+### 🗄️ Veritabanı & E-posta
+- **MariaDB/MySQL** — veritabanı + kullanıcı oluşturma/yönetme, yetkilendirme
+- **E-posta hesapları** — Postfix + Dovecot (IMAP/POP3), OpenDKIM imzalama
+- **Webmail** — Roundcube vb. bağlantı entegrasyonu
+
+### 💾 Yedekleme & İzleme
+- **Yedekleme** — site + veritabanı yedeği alma, planlama
+- **Geri yükleme** — yedekten tek tıkla dönüş
+- **Sunucu izleme** — gerçek zamanlı CPU / RAM / Disk / Ağ grafikleri
+- **Servis durumu** — 10 servisin canlı durumu, panelden başlat/durdur/yeniden başlat
+- **Loglar** — sistem ve servis loglarını arayüzden görüntüleme
+
+### 🛡️ Güvenlik & Yönetim
+- **Kimlik doğrulama** — JWT oturum, **iki adımlı doğrulama (2FA/TOTP)**
+- **Fail2Ban** — kaba kuvvet saldırılarına karşı koruma
+- **Güvenlik duvarı** — ufw port yönetimi
+- **Kullanıcı & paket yönetimi** — çoklu kullanıcı, Starter/Professional/Enterprise paket limitleri
+- **Bildirimler** — sistem olayları için bildirim merkezi
+- **Denetim kaydı (audit log)** — kritik işlemlerin izi
+
+---
+
+## Ekran Görüntüleri
+
+> Görseller `docs/screenshots/` klasörüne eklendiğinde aşağıda otomatik görünür.
+> Bkz. [docs/screenshots/README.md](docs/screenshots/README.md) (hangi dosya nereye).
+
+| Panel (Dashboard) | Dosya Yöneticisi |
+|---|---|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Dosya Yöneticisi](docs/screenshots/files.png) |
+
+| Domain Yönetimi | Servis Durumu |
+|---|---|
+| ![Domainler](docs/screenshots/domains.png) | ![Servisler](docs/screenshots/services.png) |
 
 ---
 
@@ -167,6 +205,60 @@ docker compose logs -f   # canlı log
 - Parolalar bcrypt ile hashlenir. Varsayılan/sabit admin parolası **yoktur**.
 - Ayrıntı ve sıkılaştırma: [docs/SECURITY.md](docs/SECURITY.md).
 
-## Lisans
+---
 
-Ticari ürün. Tüm hakları saklıdır.
+## English
+
+**HostPanel** is a self-hosted web hosting control panel — manage domains, subdomains,
+DNS, SSL, FTP/SFTP, files, databases, e-mail, PHP versions, backups and server monitoring
+from a single interface. Built with Next.js (UI) + Node.js/Express (API) + MariaDB + Redis,
+orchestrated with Docker Compose.
+
+### Key features
+
+- **Web & domains** — domain/subdomain management with automatic nginx vhost generation,
+  BIND-based DNS, free Let's Encrypt SSL with auto-renewal, per-domain PHP version selection
+- **Files & transfer** — full file manager with **trash** (restore / permanently delete),
+  bulk actions, system-based FTP/SFTP accounts with sync
+- **Databases & e-mail** — MariaDB database/user management, Postfix + Dovecot mail with
+  OpenDKIM, webmail integration
+- **Backup & monitoring** — site/database backup & restore, real-time CPU/RAM/disk/network
+  graphs, live status of all services, log viewer
+- **Security** — JWT auth with **2FA (TOTP)**, Fail2Ban, firewall (ufw), multi-user with
+  package limits, audit logging
+
+### Quick install
+
+```bash
+# On a fresh Ubuntu 22.04/24.04 server, as root:
+git clone https://github.com/cevo1466/hosting-panel.git
+cd hosting-panel
+chmod +x install.sh
+sudo ./install.sh
+```
+
+The interactive wizard auto-detects your IP, asks for the panel address, admin
+credentials and ports, generates strong secrets, brings up all containers, creates the
+database and first admin, then health-checks every service. When it finishes, open
+`http://YOUR_SERVER_IP` and sign in with the credentials you chose.
+
+### Requirements
+
+Ubuntu 22.04/24.04 LTS (or Debian 12) · root access · public IP · min 2 GB RAM, 20 GB disk.
+A domain is optional (works by IP; required for SSL).
+
+### Security
+
+All secrets are randomly generated at install time, stored in `.env` (mode 600, never
+committed). Passwords are bcrypt-hashed. There is **no default/fixed admin password** — you
+create your own admin during installation. See [docs/SECURITY.md](docs/SECURITY.md).
+
+### Documentation
+
+[Install](docs/INSTALL.md) · [Security](docs/SECURITY.md) · [Services & Ports](docs/SERVICES.md) · [Troubleshooting](docs/TROUBLESHOOTING.md)
+
+---
+
+## Lisans / License
+
+Ticari ürün, tüm hakları saklıdır. · Commercial product, all rights reserved.
