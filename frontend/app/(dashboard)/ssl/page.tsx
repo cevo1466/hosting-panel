@@ -30,12 +30,22 @@ interface Domain {
   sslCertificate?: { status: string } | null;
 }
 
+interface Subdomain {
+  id: string;
+  name: string;
+  fullName: string;
+  domainId: string;
+  sslEnabled?: boolean;
+  sslCertificate?: { status: string } | null;
+}
+
 export default function SSLPage() {
   const [certs, setCerts] = useState<SSLCert[]>([]);
   const [domains, setDomains] = useState<Domain[]>([]);
+  const [subdomains, setSubdomains] = useState<Subdomain[]>([]);
   const [loading, setLoading] = useState(true);
   const [showInstall, setShowInstall] = useState(false);
-  const [form, setForm] = useState({ domainId: '', email: '' });
+  const [form, setForm] = useState({ target: '', email: '' });
   const [submitting, setSubmitting] = useState(false);
   const [renewingId, setRenewingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -59,7 +69,17 @@ export default function SSLPage() {
         domainId: c.domainId,
       }));
       setCerts(mapped);
-      setDomains(domsRes.data.data || []);
+      const domList: Domain[] = domsRes.data.data || [];
+      setDomains(domList);
+      // SSL subdomain'lere de kurulabilsin diye tüm subdomainleri topla.
+      const subAll: Subdomain[] = [];
+      await Promise.all(domList.map(async (d) => {
+        try {
+          const r = await api.get(`/subdomains/${d.id}`);
+          (r.data.data || []).forEach((s: any) => subAll.push({ ...s, domainId: d.id }));
+        } catch {}
+      }));
+      setSubdomains(subAll);
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -70,13 +90,16 @@ export default function SSLPage() {
   useEffect(() => { fetchData(); }, []);
 
   const handleInstall = async () => {
-    if (!form.domainId) return toast.error('Lütfen domain seçin.');
+    if (!form.target) return toast.error('Lütfen domain veya subdomain seçin.');
+    const [kind, id] = form.target.split(':');
     setSubmitting(true);
     try {
-      await api.post('/ssl/install', { domainId: form.domainId, email: form.email || undefined });
+      const payload: any = { email: form.email || undefined };
+      if (kind === 's') payload.subdomainId = id; else payload.domainId = id;
+      await api.post('/ssl/install', payload);
       toast.success('SSL kurulumu başlatıldı. Bu işlem birkaç dakika sürebilir.');
       setShowInstall(false);
-      setForm({ domainId: '', email: '' });
+      setForm({ target: '', email: '' });
       fetchData();
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -244,15 +267,25 @@ export default function SSLPage() {
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Domain</label>
-              <Select value={form.domainId} onValueChange={(v) => setForm({ ...form, domainId: v })}>
+              <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Domain / Subdomain</label>
+              <Select value={form.target} onValueChange={(v) => setForm({ ...form, target: v })}>
                 <SelectTrigger className="bg-[#07080b] border-[#23252a] text-white rounded-xl">
-                  <SelectValue placeholder="Domain seçin" />
+                  <SelectValue placeholder="Domain veya subdomain seçin" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#0b0c10] border-[#23252a] text-white">
-                  {domains.filter(d => !d.sslCertificate && !d.sslEnabled).map((d) => (
-                    <SelectItem key={d.id} value={d.id} className="hover:bg-[#14151a]">{d.name}</SelectItem>
+                  {domains.map((d) => (
+                    <SelectItem key={`d:${d.id}`} value={`d:${d.id}`} className="hover:bg-[#14151a]">
+                      {d.name}{(d.sslCertificate || d.sslEnabled) ? ' — SSL var (yeniden kur)' : ''}
+                    </SelectItem>
                   ))}
+                  {subdomains.map((s) => (
+                    <SelectItem key={`s:${s.id}`} value={`s:${s.id}`} className="hover:bg-[#14151a]">
+                      ↳ {s.fullName || `${s.name}.${domains.find((d) => d.id === s.domainId)?.name || ''}`}{(s.sslCertificate || s.sslEnabled) ? ' — SSL var' : ''}
+                    </SelectItem>
+                  ))}
+                  {domains.length === 0 && subdomains.length === 0 && (
+                    <div className="px-3 py-2 text-xs text-[#8a8f98]">Önce domain ekleyin.</div>
+                  )}
                 </SelectContent>
               </Select>
             </div>

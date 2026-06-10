@@ -80,6 +80,8 @@ services:
       FTP_USERLIST_FILE: ${FTP_USERLIST_FILE:-/etc/vsftpd.userlist}
       MAIL_BASE: /var/mail/vhosts
       BACKUP_BASE: /var/backups/hosting
+      # Roundcube docroot — per-domain otomatik webmail.<domain> bunun varligina bagli.
+      ROUNDCUBE_ROOT: ${ROUNDCUBE_ROOT:-/var/lib/roundcube/public_html}
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:-admin@example.com}
     volumes:
       - /var/www:/var/www

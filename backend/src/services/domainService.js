@@ -221,6 +221,15 @@ async function createDomain(userId, name, phpVersion = '8.3') {
     logger.warn('Auto DNS setup failed (non-fatal)', { domainId: domain.id, error: err.message });
   }
 
+  // Otomatik per-domain webmail (webmail.<domain>): nginx vhost + best-effort SSL.
+  // Arka planda SSL dener; domain oluşturmayı bloklamaz, başarısızlık non-fatal.
+  try {
+    const webmailService = require('./webmailService');
+    await webmailService.provisionWebmail(name);
+  } catch (err) {
+    logger.warn('Auto webmail provisioning failed (non-fatal)', { domainId: domain.id, error: err.message });
+  }
+
   return domain;
 }
 
@@ -231,13 +240,14 @@ async function setupDomainDns(domainId, domainName, dnsService) {
     zone = await dnsService.createZone(domainId);
   }
 
-  // Records that should exist: A, www, mail, MX, SPF, DMARC, DKIM placeholder.
-  // Webmail is intentionally shared at the panel-wide WEBMAIL_URL, not per-domain.
+  // Records that should exist: A, www, mail, ftp, webmail, MX, SPF, DMARC, DKIM placeholder.
+  // Webmail PER-DOMAIN: webmail.<domain> otomatik provision edilir (webmailService).
   const needed = [
     { type: 'A',   name: '@',             value: SERVER_IP,                                ttl: 3600 },
     { type: 'A',   name: 'www',           value: SERVER_IP,                                ttl: 3600 },
     { type: 'A',   name: 'mail',          value: SERVER_IP,                                ttl: 3600 },
     { type: 'A',   name: 'ftp',           value: SERVER_IP,                                ttl: 3600 },
+    { type: 'A',   name: 'webmail',       value: SERVER_IP,                                ttl: 3600 },
     { type: 'MX',  name: '@',             value: `mail.${domainName}.`,                   ttl: 3600, priority: 10 },
     { type: 'TXT', name: '@',             value: `v=spf1 mx a ip4:${SERVER_IP} ~all`,     ttl: 3600 },
     { type: 'TXT', name: '_dmarc',        value: `v=DMARC1; p=quarantine; rua=mailto:postmaster@${domainName}; pct=100`, ttl: 3600 },
@@ -281,6 +291,11 @@ async function deleteDomain(domainId) {
 
   await fs.unlink(enabledPath).catch(() => {});
   await fs.unlink(configPath).catch(() => {});
+
+  // Otomatik webmail vhost + cert temizliği (non-fatal)
+  try {
+    await require('./webmailService').deprovisionWebmail(domain.name);
+  } catch (e) {}
 
   // Reload nginx
   await reloadNginx().catch(() => {});
