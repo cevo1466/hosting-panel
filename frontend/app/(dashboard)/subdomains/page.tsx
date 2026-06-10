@@ -16,7 +16,8 @@ interface Subdomain {
   name: string;
   fullName: string;
   phpVersion: string;
-  sslEnabled: boolean;
+  sslEnabled?: boolean;
+  sslCertificate?: { status: string } | null;
   status: string;
   documentRoot: string;
   createdAt: string;
@@ -160,7 +161,7 @@ export default function SubdomainsPage() {
                     <Code2 className="h-3.5 w-3.5 text-[#8a8f98]" />
                     <span className="text-xs font-mono text-slate-300">PHP {s.phpVersion}</span>
                   </div>
-                  {s.sslEnabled ? (
+                  {(s.sslCertificate || s.sslEnabled) ? (
                     <Badge variant="outline" className="bg-emerald-950/20 text-emerald-400 border-emerald-900/30 text-[10px] gap-1">
                       <Shield className="h-3 w-3" /> SSL Aktif
                     </Badge>

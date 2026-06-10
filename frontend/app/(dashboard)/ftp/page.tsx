@@ -25,10 +25,12 @@ interface FTPAccount {
 }
 
 interface Domain { id: string; name: string; }
+interface Subdomain { id: string; name: string; domainId: string; domain?: { name: string } }
 
 export default function FTPPage() {
   const [accounts, setAccounts] = useState<FTPAccount[]>([]);
   const [domains, setDomains] = useState<Domain[]>([]);
+  const [subdomains, setSubdomains] = useState<Subdomain[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showAdd, setShowAdd] = useState(false);
@@ -38,15 +40,20 @@ export default function FTPPage() {
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
-  const [form, setForm] = useState({ username: '', password: '', domainId: '', quota: '1024' });
+  const [form, setForm] = useState({ username: '', password: '', domainId: '', subdomainId: '', quota: '1024' });
   const [pwForm, setPwForm] = useState({ password: '' });
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [ftpRes, domsRes] = await Promise.all([api.get('/ftp'), api.get('/domains')]);
+      const [ftpRes, domsRes, subsRes] = await Promise.all([
+        api.get('/ftp'),
+        api.get('/domains'),
+        api.get('/subdomains').catch(() => ({ data: { data: [] } })),
+      ]);
       setAccounts(ftpRes.data.data || []);
       setDomains(domsRes.data.data || []);
+      setSubdomains(subsRes.data.data || []);
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -60,10 +67,16 @@ export default function FTPPage() {
     if (!form.username || !form.password || !form.domainId) return toast.error('Tüm alanlar zorunludur.');
     setSubmitting(true);
     try {
-      await api.post('/ftp', { username: form.username, password: form.password, domainId: form.domainId, quota: parseInt(form.quota) });
+      await api.post('/ftp', {
+        username: form.username,
+        password: form.password,
+        domainId: form.domainId,
+        subdomainId: form.subdomainId || undefined,
+        quota: parseInt(form.quota),
+      });
       toast.success('FTP hesabı oluşturuldu.');
       setShowAdd(false);
-      setForm({ username: '', password: '', domainId: '', quota: '1024' });
+      setForm({ username: '', password: '', domainId: '', subdomainId: '', quota: '1024' });
       fetchData();
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -230,13 +243,28 @@ export default function FTPPage() {
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Domain</label>
-              <Select value={form.domainId} onValueChange={(v) => setForm({ ...form, domainId: v })}>
+              <Select value={form.domainId} onValueChange={(v) => setForm({ ...form, domainId: v, subdomainId: '' })}>
                 <SelectTrigger className="bg-[#07080b] border-[#23252a] text-white rounded-xl"><SelectValue placeholder="Domain seçin" /></SelectTrigger>
                 <SelectContent className="bg-[#0b0c10] border-[#23252a] text-white">
                   {domains.map(d => <SelectItem key={d.id} value={d.id} className="hover:bg-[#14151a]">{d.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
+            {form.domainId && subdomains.filter(s => s.domainId === form.domainId).length > 0 && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Alt Alan Adı (opsiyonel)</label>
+                <Select value={form.subdomainId || 'none'} onValueChange={(v) => setForm({ ...form, subdomainId: v === 'none' ? '' : v })}>
+                  <SelectTrigger className="bg-[#07080b] border-[#23252a] text-white rounded-xl"><SelectValue placeholder="Ana domain (kök dizin)" /></SelectTrigger>
+                  <SelectContent className="bg-[#0b0c10] border-[#23252a] text-white">
+                    <SelectItem value="none" className="hover:bg-[#14151a]">Ana domain (kök dizin)</SelectItem>
+                    {subdomains.filter(s => s.domainId === form.domainId).map(s => (
+                      <SelectItem key={s.id} value={s.id} className="hover:bg-[#14151a]">{s.name}.{domains.find(d => d.id === form.domainId)?.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-[#62666d]">Alt alan adı seçerseniz FTP, o alt alan adının public_html dizinine bağlanır.</p>
+              </div>
+            )}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Kullanıcı Adı</label>
               <Input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="ftpuser" className="bg-[#07080b] border-[#23252a] text-white rounded-xl font-mono" />

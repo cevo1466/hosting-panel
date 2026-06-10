@@ -33,6 +33,7 @@ interface TrashItem {
 }
 
 interface Domain { id: string; name: string; }
+interface Subdomain { id: string; name: string; domainId: string; }
 
 const formatSize = (bytes: number) => {
   if (!bytes) return '—';
@@ -49,7 +50,9 @@ const formatDate = (iso: string) => {
 
 export default function FilesPage() {
   const [domains, setDomains] = useState<Domain[]>([]);
+  const [subdomains, setSubdomains] = useState<Subdomain[]>([]);
   const [domainId, setDomainId] = useState('');
+  const [subdomainId, setSubdomainId] = useState('');
   const [path, setPath] = useState('/');
   const [entries, setEntries] = useState<FileEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -65,20 +68,24 @@ export default function FilesPage() {
   const [showEmptyConfirm, setShowEmptyConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Seçili hedefin API kök yolu: subdomain seçiliyse onun, değilse domain'in.
+  const basePath = subdomainId ? `/files/subdomains/${subdomainId}` : (domainId ? `/files/${domainId}` : '');
+
   useEffect(() => {
     api.get('/domains').then(r => {
       const list = r.data.data || [];
       setDomains(list);
       if (list.length > 0) setDomainId(list[0].id);
     }).catch(() => {});
+    api.get('/subdomains').then(r => setSubdomains(r.data.data || [])).catch(() => {});
   }, []);
 
   const fetchFiles = async (targetPath = path) => {
-    if (!domainId) return;
+    if (!basePath) return;
     setLoading(true);
     setSelectedNames(new Set());
     try {
-      const res = await api.get(`/files/${domainId}`, { params: { path: targetPath } });
+      const res = await api.get(`${basePath}`, { params: { path: targetPath } });
       setEntries(res.data.data || []);
       setPath(targetPath);
     } catch (err) {
@@ -89,11 +96,11 @@ export default function FilesPage() {
   };
 
   const fetchTrash = async () => {
-    if (!domainId) return;
+    if (!basePath) return;
     setTrashLoading(true);
     setSelectedTrash(new Set());
     try {
-      const res = await api.get(`/files/${domainId}/trash`);
+      const res = await api.get(`${basePath}/trash`);
       setTrashItems(res.data.data || []);
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -103,8 +110,8 @@ export default function FilesPage() {
   };
 
   useEffect(() => {
-    if (domainId) { setPath('/'); fetchFiles('/'); setShowTrash(false); setTrashItems([]); }
-  }, [domainId]);
+    if (basePath) { setPath('/'); fetchFiles('/'); setShowTrash(false); setTrashItems([]); }
+  }, [domainId, subdomainId]);
 
   useEffect(() => {
     if (showTrash && domainId) fetchTrash();
@@ -126,13 +133,13 @@ export default function FilesPage() {
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !domainId) return;
+    if (!file || !basePath) return;
     const formData = new FormData();
     formData.append('file', file);
     formData.append('domainId', domainId);
     formData.append('path', path);
     try {
-      await api.post(`/files/${domainId}/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await api.post(`${basePath}/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       toast.success(`${file.name} yüklendi.`);
       fetchFiles();
     } catch (err) {
@@ -145,7 +152,7 @@ export default function FilesPage() {
     if (!newName.trim()) return;
     setSubmitting(true);
     try {
-      await api.post(`/files/${domainId}/mkdir`, { path: `${path}/${newName}` });
+      await api.post(`${basePath}/mkdir`, { path: `${path}/${newName}` });
       toast.success('Klasör oluşturuldu.');
       setShowMkdir(false);
       setNewName('');
@@ -160,7 +167,7 @@ export default function FilesPage() {
   const handleDelete = async (entry: FileEntry) => {
     if (!confirm(`"${entry.name}" çöp kutusuna taşınsın mı?`)) return;
     try {
-      await api.post(`/files/${domainId}/trash/move`, { paths: [`${path}/${entry.name}`] });
+      await api.post(`${basePath}/trash/move`, { paths: [`${path}/${entry.name}`] });
       toast.success(`"${entry.name}" çöp kutusuna taşındı.`);
       setEntries(prev => prev.filter(e => e.name !== entry.name));
     } catch (err) {
@@ -190,7 +197,7 @@ export default function FilesPage() {
     setSubmitting(true);
     try {
       const paths = Array.from(selectedNames).map(name => `${path}/${name}`);
-      await api.post(`/files/${domainId}/trash/move`, { paths });
+      await api.post(`${basePath}/trash/move`, { paths });
       toast.success(`${count} öğe çöp kutusuna taşındı.`);
       setSelectedNames(new Set());
       fetchFiles();
@@ -205,7 +212,7 @@ export default function FilesPage() {
     if (!showRename || !newName.trim()) return;
     setSubmitting(true);
     try {
-      await api.post(`/files/${domainId}/rename`, {
+      await api.post(`${basePath}/rename`, {
         oldPath: `${path}/${showRename.name}`,
         newPath: `${path}/${newName}`,
       });
@@ -236,7 +243,7 @@ export default function FilesPage() {
     if (selectedTrash.size === 0) return;
     setSubmitting(true);
     try {
-      await api.post(`/files/${domainId}/trash/restore`, { trashNames: Array.from(selectedTrash) });
+      await api.post(`${basePath}/trash/restore`, { trashNames: Array.from(selectedTrash) });
       toast.success(`${selectedTrash.size} öğe geri yüklendi.`);
       fetchTrash();
     } catch (err) {
@@ -251,7 +258,7 @@ export default function FilesPage() {
     if (!confirm(`${selectedTrash.size} öğe kalıcı olarak silinsin mi? Bu işlem geri alınamaz.`)) return;
     setSubmitting(true);
     try {
-      await api.post(`/files/${domainId}/trash/delete`, { trashNames: Array.from(selectedTrash) });
+      await api.post(`${basePath}/trash/delete`, { trashNames: Array.from(selectedTrash) });
       toast.success(`${selectedTrash.size} öğe kalıcı olarak silindi.`);
       fetchTrash();
     } catch (err) {
@@ -264,7 +271,7 @@ export default function FilesPage() {
   const handleEmptyTrash = async () => {
     setSubmitting(true);
     try {
-      await api.delete(`/files/${domainId}/trash/empty`);
+      await api.delete(`${basePath}/trash/empty`);
       toast.success('Çöp kutusu temizlendi.');
       setShowEmptyConfirm(false);
       fetchTrash();
@@ -289,15 +296,33 @@ export default function FilesPage() {
           <p className="text-[#8a8f98] mt-1 text-sm">Domain dosya sisteminizi tarayın ve yönetin.</p>
         </div>
         <div className="flex gap-2 items-center">
-          <Select value={domainId} onValueChange={setDomainId}>
-            <SelectTrigger className="w-48 bg-[#07080b] border-[#23252a] text-white rounded-xl">
-              <SelectValue placeholder="Domain seçin" />
+          <Select
+            value={subdomainId ? `s:${subdomainId}` : (domainId ? `d:${domainId}` : '')}
+            onValueChange={(v) => {
+              if (v.startsWith('s:')) {
+                const sid = v.slice(2);
+                const sub = subdomains.find(s => s.id === sid);
+                setSubdomainId(sid);
+                setDomainId(sub?.domainId || domainId);
+              } else {
+                setDomainId(v.slice(2));
+                setSubdomainId('');
+              }
+            }}
+          >
+            <SelectTrigger className="w-60 bg-[#07080b] border-[#23252a] text-white rounded-xl">
+              <SelectValue placeholder="Domain / alt alan adı seçin" />
             </SelectTrigger>
             <SelectContent className="bg-[#0b0c10] border-[#23252a] text-white">
-              {domains.map(d => <SelectItem key={d.id} value={d.id} className="hover:bg-[#14151a]">{d.name}</SelectItem>)}
+              {domains.flatMap(d => [
+                <SelectItem key={`d:${d.id}`} value={`d:${d.id}`} className="hover:bg-[#14151a] font-medium">{d.name}</SelectItem>,
+                ...subdomains.filter(s => s.domainId === d.id).map(s => (
+                  <SelectItem key={`s:${s.id}`} value={`s:${s.id}`} className="hover:bg-[#14151a] pl-6 text-cyan-300">↳ {s.name}.{d.name}</SelectItem>
+                )),
+              ])}
             </SelectContent>
           </Select>
-          {domainId && (
+          {(domainId || subdomainId) && (
             <Button
               onClick={() => setShowTrash(v => !v)}
               variant="outline"
@@ -313,7 +338,7 @@ export default function FilesPage() {
         </div>
       </div>
 
-      {domainId && !showTrash && (
+      {(domainId || subdomainId) && !showTrash && (
         <>
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-1 text-sm text-[#8a8f98] flex-wrap">
@@ -428,7 +453,7 @@ export default function FilesPage() {
         </>
       )}
 
-      {domainId && showTrash && (
+      {(domainId || subdomainId) && showTrash && (
         <>
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-2">
@@ -520,7 +545,7 @@ export default function FilesPage() {
                           onClick={async () => {
                             if (!confirm(`"${item.originalName}" kalıcı olarak silinsin mi?`)) return;
                             try {
-                              await api.post(`/files/${domainId}/trash/delete`, { trashNames: [item.trashName] });
+                              await api.post(`${basePath}/trash/delete`, { trashNames: [item.trashName] });
                               toast.success('Kalıcı olarak silindi.');
                               fetchTrash();
                             } catch (err) { toast.error(getErrorMessage(err)); }
@@ -539,7 +564,7 @@ export default function FilesPage() {
         </>
       )}
 
-      {!domainId && (
+      {!domainId && !subdomainId && (
         <Card className="bg-[#0b0c10]/50 backdrop-blur-xl border border-[#23252a]">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <HardDrive className="h-12 w-12 text-[#8a8f98] mb-4" />

@@ -16,7 +16,8 @@ interface Domain {
   id: string;
   name: string;
   phpVersion: string;
-  sslEnabled: boolean;
+  sslEnabled?: boolean;
+  sslCertificate?: { status: string; expiresAt?: string } | null;
   sslExpiry?: string;
   status: 'active' | 'suspended' | 'pending';
   createdAt: string;
@@ -139,7 +140,7 @@ export default function DomainsPage() {
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-bold text-white text-lg">{domain.name}</h3>
-                        {domain.sslEnabled ? (
+                        {(domain.sslCertificate || domain.sslEnabled) ? (
                           <Badge variant="outline" className="bg-emerald-950/20 text-emerald-400 border-emerald-900/30 flex items-center gap-1 text-[10px] px-2 py-0.5">
                             <Shield className="h-3 w-3" /> SSL
                           </Badge>

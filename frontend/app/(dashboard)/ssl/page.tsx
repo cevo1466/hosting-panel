@@ -26,7 +26,8 @@ interface SSLCert {
 interface Domain {
   id: string;
   name: string;
-  sslEnabled: boolean;
+  sslEnabled?: boolean;
+  sslCertificate?: { status: string } | null;
 }
 
 export default function SSLPage() {
@@ -43,7 +44,21 @@ export default function SSLPage() {
     try {
       setLoading(true);
       const [certsRes, domsRes] = await Promise.all([api.get('/ssl'), api.get('/domains')]);
-      setCerts(certsRes.data.data || []);
+      // Backend şekli (commonName, issuedAt, expiresAt, provider, domain: {name}) ile
+      // bu sayfanın beklediği şekli (domain string, validFrom/validTo, type) eşle.
+      // domain bir OBJE gelirse JSX'e basınca React çöker — burada string'e indirilir.
+      const mapped = (certsRes.data.data || []).map((c: any) => ({
+        id: c.id,
+        domain: (c.domain && typeof c.domain === 'object' ? c.domain.name : c.domain) || c.commonName || '-',
+        issuer: c.issuer || "Let's Encrypt",
+        validFrom: c.issuedAt || c.validFrom || null,
+        validTo: c.expiresAt || c.validTo || null,
+        status: c.status || 'active',
+        autoRenew: c.autoRenew ?? true,
+        type: c.provider || c.type || 'letsencrypt',
+        domainId: c.domainId,
+      }));
+      setCerts(mapped);
       setDomains(domsRes.data.data || []);
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -235,7 +250,7 @@ export default function SSLPage() {
                   <SelectValue placeholder="Domain seçin" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#0b0c10] border-[#23252a] text-white">
-                  {domains.filter(d => !d.sslEnabled).map((d) => (
+                  {domains.filter(d => !d.sslCertificate && !d.sslEnabled).map((d) => (
                     <SelectItem key={d.id} value={d.id} className="hover:bg-[#14151a]">{d.name}</SelectItem>
                   ))}
                 </SelectContent>
