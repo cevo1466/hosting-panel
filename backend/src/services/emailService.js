@@ -20,7 +20,8 @@ function validatePassword(password) {
 async function ensureMailbox(domainName, localPart) {
   const mailboxPath = path.join(MAIL_BASE, domainName, localPart);
   await runCommand('mkdir', ['-p', mailboxPath]);
-  await runCommand('chown', ['-R', 'vmail:vmail', path.join(MAIL_BASE, domainName)]);
+  // Dovecot's host account is vmail:mail; keep new Maildir roots writable by LMTP.
+  await runCommand('chown', ['-R', 'vmail:mail', path.join(MAIL_BASE, domainName)]);
   return mailboxPath;
 }
 
